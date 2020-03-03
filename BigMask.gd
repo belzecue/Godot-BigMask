@@ -3,26 +3,30 @@ extends Reference
 
 const MASK_SIZE := 32
 var bit_masks: PoolIntArray = []
+var bits: int
 
-func _init(size: int, default_state: bool) -> void:
+func _init(size: int, default_state: bool = false, enforce_soft_size: bool = true) -> void:
+	resize(size, default_state, enforce_soft_size)
+
+func resize(size: int, default_state: bool = false, enforce_soft_size: bool = true) -> void:
+	assert(size >= 0)
+	var old_masks = bit_masks.size()
 	bit_masks.resize(ceil(size / float(MASK_SIZE)))
-	if default_state:
-		for i in range(bit_masks.size() - 1):
-			bit_masks[i] = ~0
-		bit_masks[bit_masks.size() - 1] = ~((~0) << (size % MASK_SIZE))
-	else:
-		for i in range(bit_masks.size()):
-			bit_masks[i] = 0
+	bits = size if enforce_soft_size else bit_masks.size() * MASK_SIZE
+	for i in range(old_masks, bit_masks.size()):
+		bit_masks[i] = ~0 if default_state else 0
 
 func check_bit(index: int) -> bool:
+	assert(index < bits)
 	return bit_masks[index / MASK_SIZE] & (1 << (index % MASK_SIZE)) != 0
 
-func enable_bit(index: int) -> void:
-	bit_masks[index / MASK_SIZE] |= (1 << (index % MASK_SIZE))
-
-func disable_bit(index: int) -> void:
-	bit_masks[index / MASK_SIZE] &= ~(1 << (index % MASK_SIZE))
+func set_bit(index: int, state: bool) -> void:
+	assert(index < bits)
+	if state:
+		bit_masks[index / MASK_SIZE] |= (1 << (index % MASK_SIZE))
+	else:
+		bit_masks[index / MASK_SIZE] &= ~(1 << (index % MASK_SIZE))
 
 func print_bits() -> void:
-	for i in range(bit_masks.size() * MASK_SIZE):
+	for i in range(bits):
 		print("bit " + String(i) + ": " + String(check_bit(i)))
