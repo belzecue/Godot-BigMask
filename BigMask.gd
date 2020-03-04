@@ -11,7 +11,7 @@ func _init(size: int, default_state: bool = false, enforce_soft_size: bool = tru
 func resize(size: int, default_state: bool = false, enforce_soft_size: bool = true) -> void:
 	assert(size >= 0)
 	var old_masks := bitmasks.size()
-	if old_masks > 0:
+	if old_masks > 0 and bits % MASK_SIZE:
 		if default_state:	
 			bitmasks[old_masks - 1] |= (~0 << (bits % MASK_SIZE))
 		else:
